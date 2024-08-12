@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NadinSoftProject.Models;
+using NadinSoftProject.Models.Dto;
+using System.Collections.Generic;
 
 namespace NadinSoftProject.Controllers
 {
@@ -8,9 +9,18 @@ namespace NadinSoftProject.Controllers
     public class ProductController : ControllerBase
     {
         [HttpGet]
-        public Product Get()
+        public ActionResult<IEnumerable<ProductDto>> GetAll()
         {
-            return new Product() { Id = 1, ProductName = "df" };
+            return Ok(new List<ProductDto>
+            {
+                new ProductDto() { ProductName = "df" },
+                new ProductDto() { ProductName = "df" }
+            });
+        }
+        [HttpGet("Id:int")]
+        public ActionResult<ProductDto> GetById(int id)
+        {
+            return Ok(new ProductDto() { ProductName = "df" });
         }
     }
 }
