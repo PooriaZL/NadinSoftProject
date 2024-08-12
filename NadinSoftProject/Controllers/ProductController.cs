@@ -10,7 +10,7 @@ namespace NadinSoftProject.Controllers
         [HttpGet]
         public Product Get()
         {
-            return new Product() { Id = 1, Name = "df" };
+            return new Product() { Id = 1, ProductName = "df" };
         }
     }
 }
