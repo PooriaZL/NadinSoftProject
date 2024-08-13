@@ -38,5 +38,25 @@ namespace NadinSoft.UnitTests
             var result = (OkObjectResult)pc.GetById(id);
             result.StatusCode.Should().Be(200);
         }
+        [Theory]
+        [InlineData(0)]
+        public void GetbyId_OnFail_ReturnsStatusCode400(int id)
+        {
+            var mockProductService = new Mock<IProductsService>();
+            mockProductService.Setup(service => service.GetProductById(id)).Returns(new Product() { Id = 0, ProductName = "Apple" });
+            var pc = new ProductController(mockProductService.Object);
+            var result = (BadRequestResult)pc.GetById(id);
+            result.StatusCode.Should().Be(400);
+        }
+        [Theory]
+        [InlineData(1)]
+        public void GetbyId_OnNotFound_ReturnsStatusCode404(int id)
+        {
+            var mockProductService = new Mock<IProductsService>();
+            mockProductService.Setup(service => service.GetProductById(id)).Returns(null as Product);
+            var pc = new ProductController(mockProductService.Object);
+            var result = (NotFoundResult)pc.GetById(id);
+            result.StatusCode.Should().Be(404);
+        }
     }
 }
