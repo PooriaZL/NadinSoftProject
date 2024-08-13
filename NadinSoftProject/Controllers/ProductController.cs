@@ -69,5 +69,45 @@ namespace NadinSoftProject.Controllers
             _db.SaveChanges();
             return CreatedAtRoute("GetById", new { id = productDto.Id }, productDto);
         }
+        [HttpDelete("{id:int}", Name = "DeleteProduct")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult DeleteProduct(int id)
+        {
+            if(id == 0)
+            {
+                return BadRequest();
+            }
+            var product = _db.Products.FirstOrDefault(p => p.Id == id);
+            if(product == null)
+            {
+                return NotFound();
+            }
+            _db.Products.Remove(product);
+            _db.SaveChanges();
+            return NoContent();
+        }
+        [HttpPut("{id:int}", Name = "UpdateProduct")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdateProduct(int id, [FromBody]ProductDto productDto)
+        {
+            if(productDto == null || id != productDto.Id)
+            {
+                return BadRequest();
+            }
+            Product model = new()
+            {
+                Id = productDto.Id,
+                ProductName = productDto.ProductName,
+                ManufacturePhone = productDto.ManufacturePhone,
+                ManufactureEmail = productDto.ManufactureEmail,
+                IsAvailable = productDto.IsAvailable
+            };
+            _db.Products.Update(model);
+            _db.SaveChanges();
+            return NoContent();
+        }
     }
 }
