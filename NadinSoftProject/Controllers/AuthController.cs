@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NadinSoftProject.Data;
@@ -50,13 +51,23 @@ namespace NadinSoftProject.Controllers
                 ModelState.AddModelError("CustomError", "Wrong Password");
                 return BadRequest(ModelState);
             }
-            return Ok(user);
+            string token = CreateToken(user);
+            return Ok(token);
+        }
+        [HttpGet("GetCurrentUser"), Authorize]
+        public IActionResult GetCurrentUser()
+        {
+            return Ok(new {UserName = User.FindFirstValue(ClaimTypes.Name) });
         }
         private string CreateToken(User user)
         {
-            List<Claim> claims = new List<Claim>() { new Claim(ClaimTypes.Name, user.UserName) };
+            List<Claim> claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName) 
+            };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
             var token = new JwtSecurityToken(
                     claims: claims,
                     expires: DateTime.Now.AddDays(1),

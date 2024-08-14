@@ -5,6 +5,8 @@ using NadinSoftProject.Models;
 using NadinSoftProject.Services;
 using System.Collections.Generic;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace NadinSoftProject.Controllers
 {
@@ -40,7 +42,7 @@ namespace NadinSoftProject.Controllers
             }
             return Ok(product);
         }
-        [HttpPost]
+        [HttpPost, Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -59,10 +61,10 @@ namespace NadinSoftProject.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            _productsService.AddProduct(productDto);
+            _productsService.AddProduct(productDto, Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier)));
             return CreatedAtRoute("GetById", new { id = productDto.Id }, productDto);
         }
-        [HttpDelete("{id:int}", Name = "DeleteProduct")]
+        [HttpDelete("{id:int}", Name = "DeleteProduct"), Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -77,10 +79,17 @@ namespace NadinSoftProject.Controllers
             {
                 return NotFound();
             }
-            _productsService.DeleteProduct(product);
+            try
+            {
+                _productsService.DeleteProduct(product, Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
             return NoContent();
         }
-        [HttpPut("{id:int}", Name = "UpdateProduct")]
+        [HttpPut("{id:int}", Name = "UpdateProduct"), Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult UpdateProduct(int id, [FromBody] ProductDto productDto)
@@ -89,7 +98,14 @@ namespace NadinSoftProject.Controllers
             {
                 return BadRequest();
             }
-            _productsService.UpdateProduct(productDto);
+            try
+            {
+                _productsService.UpdateProduct(productDto, Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
             return NoContent();
         }
     }
